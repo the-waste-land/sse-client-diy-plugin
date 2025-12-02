@@ -8,9 +8,6 @@ identity:
     en_US: A tool to make SSE (Server-Sent Events) requests and stream the output.
     zh_Hans: 一个用于发起 SSE (Server-Sent Events) 请求并流式输出结果的工具。
   icon: icon.svg
-  tags:
-    - network
-    - sse
 credentials_for_provider: {}
 tools:
   - tools/sse_client.yaml
