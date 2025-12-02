@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 需要写入权限来创建 release
+      id-token: write  # 用于 OIDC（如果需要）
     
     steps:
       - name: Checkout code
