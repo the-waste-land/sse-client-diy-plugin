@@ -1,0 +1,80 @@
+name: Build and Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dify Plugin CLI
+        run: |
+          PLUGIN_VERSION=$(curl -s https://api.github.com/repos/dify-ai/dify-plugin/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          PLATFORM="linux-amd64"
+          if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+            PLATFORM="linux-arm64"
+          fi
+          wget -q "https://github.com/dify-ai/dify-plugin/releases/download/${PLUGIN_VERSION}/dify-plugin-${PLATFORM}" -O dify
+          chmod +x dify
+          sudo mv dify /usr/local/bin/
+          dify version
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Package plugin
+        run: |
+          chmod +x package.sh
+          ./package.sh ${{ steps.get_version.outputs.version }}
+
+      - name: Get plugin filename
+        id: get_filename
+        run: |
+          FILENAME=$(ls *.difypkg | head -1)
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+          echo "Plugin file: $FILENAME"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## Changes
+            
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+            
+            ## Installation
+            
+            Download the `.difypkg` file and install it in your Dify instance.
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.get_filename.outputs.filename }}
+          asset_name: ${{ steps.get_filename.outputs.filename }}
+          asset_content_type: application/zip
+
