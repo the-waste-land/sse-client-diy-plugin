@@ -30,13 +30,33 @@ jobs:
           fi
           echo "Platform: ${PLATFORM}"
           
-          # 直接使用 latest 下载链接，GitHub 会自动重定向到最新版本
-          DOWNLOAD_URL="https://github.com/dify-ai/dify-plugin/releases/latest/download/dify-plugin-${PLATFORM}"
+          # 获取最新 release 信息
+          echo "Fetching latest release info..."
+          RELEASE_INFO=$(curl -s https://api.github.com/repos/dify-ai/dify-plugin/releases/latest)
+          
+          # 提取版本号
+          PLUGIN_VERSION=$(echo "${RELEASE_INFO}" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
+          echo "Dify Plugin CLI version: ${PLUGIN_VERSION}"
+          
+          # 查找匹配的 asset 下载链接
+          DOWNLOAD_URL=$(echo "${RELEASE_INFO}" | grep -o "https://github.com/dify-ai/dify-plugin/releases/download/[^\"]*dify-plugin-${PLATFORM}[^\"]*" | head -1)
+          
+          # 如果没找到，尝试使用标准格式
+          if [ -z "${DOWNLOAD_URL}" ]; then
+            DOWNLOAD_URL="https://github.com/dify-ai/dify-plugin/releases/download/${PLUGIN_VERSION}/dify-plugin-${PLATFORM}"
+          fi
+          
           echo "Download URL: ${DOWNLOAD_URL}"
           
+          # 下载文件
           curl -L -f -o dify "${DOWNLOAD_URL}" || {
             echo "Failed to download Dify Plugin CLI from ${DOWNLOAD_URL}"
-            exit 1
+            echo "Trying alternative method..."
+            # 备用方法：直接使用 latest 重定向
+            curl -L -f -o dify "https://github.com/dify-ai/dify-plugin/releases/latest/download/dify-plugin-${PLATFORM}" || {
+              echo "All download methods failed"
+              exit 1
+            }
           }
           
           # 验证下载的文件不为空
@@ -46,9 +66,11 @@ jobs:
           fi
           
           # 验证文件是二进制文件（不是 HTML 错误页面）
-          if file dify | grep -q "text"; then
+          FILE_TYPE=$(file dify)
+          echo "File type: ${FILE_TYPE}"
+          if echo "${FILE_TYPE}" | grep -q "text\|HTML"; then
             echo "Error: Downloaded file appears to be text/HTML, not a binary"
-            head -5 dify
+            head -10 dify
             exit 1
           fi
           
