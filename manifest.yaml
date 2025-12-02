@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.2
 type: plugin
 author: the-waste-land
 name: sse_client
@@ -18,7 +18,7 @@ plugins:
   tools:
     - provider/sse_client.yaml
 meta:
-  version: 0.0.1
+  version: 0.0.2
   arch:
     - amd64
     - arm64
