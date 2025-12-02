@@ -89,7 +89,28 @@ dify plugin package sse_client -o sse_client/sse_client.difypkg
 
 ### 自动发布（推荐）
 
-项目已配置 GitHub Actions 工作流，当推送版本标签时会自动打包并创建 Release：
+项目已配置 GitHub Actions 工作流，当推送版本标签时会自动打包并创建 Release。
+
+#### 使用自动化脚本（最简单）
+
+使用提供的 `release.sh` 脚本一键完成所有发布步骤：
+
+```bash
+# 自动递增补丁版本号（例如：0.0.1 -> 0.0.2）
+./release.sh
+
+# 或指定版本号
+./release.sh 0.0.2
+```
+
+脚本会自动：
+- 更新 `manifest.yaml` 中的版本号
+- 提交并推送代码到 main 分支
+- 创建并推送版本标签
+
+#### 手动发布
+
+如果你想手动控制发布流程：
 
 1. **更新版本号**（在 `manifest.yaml` 中）：
    ```yaml
@@ -109,7 +130,9 @@ dify plugin package sse_client -o sse_client/sse_client.difypkg
    git push origin v0.0.2
    ```
 
-GitHub Actions 会自动：
+#### GitHub Actions 自动流程
+
+当推送版本标签后，GitHub Actions 会自动：
 - 提取版本号
 - 打包插件
 - 创建 GitHub Release
