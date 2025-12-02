@@ -1,0 +1,65 @@
+identity:
+  name: sse_client
+  author: the-waste-land
+  label:
+    en_US: SSE Client
+    zh_Hans: SSE 客户端
+description:
+  human:
+    en_US: A tool to make SSE (Server-Sent Events) requests and stream the output.
+    zh_Hans: 一个用于发起 SSE (Server-Sent Events) 请求并流式输出结果的工具。
+  llm: A tool to make SSE (Server-Sent Events) requests and stream the output.
+parameters:
+  - name: url
+    type: string
+    required: true
+    label:
+      en_US: URL
+      zh_Hans: URL
+    human_description:
+      en_US: The URL to make the SSE request to.
+      zh_Hans: 发起 SSE 请求的 URL。
+    form: llm
+  - name: method
+    type: string
+    required: false
+    default: GET
+    label:
+      en_US: Method
+      zh_Hans: 请求方法
+    human_description:
+      en_US: The HTTP method to use (GET or POST).
+      zh_Hans: 使用的 HTTP 方法 (GET 或 POST)。
+    options:
+      - value: GET
+        label:
+          en_US: GET
+          zh_Hans: GET
+      - value: POST
+        label:
+          en_US: POST
+          zh_Hans: POST
+    form: form
+  - name: headers
+    type: string
+    required: false
+    label:
+      en_US: Headers
+      zh_Hans: 请求头
+    human_description:
+      en_US: JSON string of headers to send with the request.
+      zh_Hans: 发送请求时携带的请求头 JSON 字符串。
+    form: form
+  - name: body
+    type: string
+    required: false
+    label:
+      en_US: Body
+      zh_Hans: 请求体
+    human_description:
+      en_US: JSON string of body to send with the request (for POST).
+      zh_Hans: 发送请求时携带的请求体 JSON 字符串 (用于 POST)。
+    form: form
+extra:
+  python:
+    source: tools/sse_client.py
