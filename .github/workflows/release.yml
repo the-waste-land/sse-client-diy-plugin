@@ -21,8 +21,6 @@ jobs:
       - name: Install Dify Plugin CLI
         run: |
           set -e
-          PLUGIN_VERSION=$(curl -s https://api.github.com/repos/dify-ai/dify-plugin/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-          echo "Dify Plugin CLI version: ${PLUGIN_VERSION}"
           
           PLATFORM="linux-amd64"
           ARCH=$(uname -m)
@@ -32,13 +30,27 @@ jobs:
           fi
           echo "Platform: ${PLATFORM}"
           
-          DOWNLOAD_URL="https://github.com/dify-ai/dify-plugin/releases/download/${PLUGIN_VERSION}/dify-plugin-${PLATFORM}"
+          # 直接使用 latest 下载链接，GitHub 会自动重定向到最新版本
+          DOWNLOAD_URL="https://github.com/dify-ai/dify-plugin/releases/latest/download/dify-plugin-${PLATFORM}"
           echo "Download URL: ${DOWNLOAD_URL}"
           
-          curl -L -o dify "${DOWNLOAD_URL}" || {
-            echo "Failed to download Dify Plugin CLI"
+          curl -L -f -o dify "${DOWNLOAD_URL}" || {
+            echo "Failed to download Dify Plugin CLI from ${DOWNLOAD_URL}"
             exit 1
           }
+          
+          # 验证下载的文件不为空
+          if [ ! -s dify ]; then
+            echo "Error: Downloaded file is empty"
+            exit 1
+          fi
+          
+          # 验证文件是二进制文件（不是 HTML 错误页面）
+          if file dify | grep -q "text"; then
+            echo "Error: Downloaded file appears to be text/HTML, not a binary"
+            head -5 dify
+            exit 1
+          fi
           
           chmod +x dify
           sudo mv dify /usr/local/bin/
